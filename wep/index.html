@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Professional Experience</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* وضع الصورة كخلفية ثابتة باستخدام رابط مباشر إجباري */
+        html, body {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; background-color: #000;
+        }
+
+        /* حاوية الخلفية لضمان ظهورها فوراً */
+        #main-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://od.lk/download/M18zMjcyMjM4Nzlf/retouch_%D9%A2%D9%A0%D9%A2%D9%A6%D9%A0%D9%A4%D9%A2%D9%A3%D9%A0%D9%A1%D9%A0%D9%A9%D9%A2%D9%A2%D9%A3%D9%A7.jpg');
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            z-index: 1;
+        }
+
+        video { 
+            width: 100%; height: 100%; object-fit: cover; 
+            opacity: 0; transition: opacity 1s ease;
+        }
+
+        /* واجهة التأكيد الضخمة جداً */
+        #confirm-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        }
+
+        .confirm-box { width: 90%; text-align: center; color: white; }
+        .confirm-box h2 { font-size: 32px; margin-bottom: 40px; font-weight: 900; }
+
+        .btn-group { display: flex; flex-direction: column; gap: 20px; }
+        .confirm-btn {
+            width: 100%; padding: 30px; border: none; border-radius: 20px;
+            font-size: 24px; font-weight: 900; cursor: pointer;
+        }
+        .btn-yes { background: #fff; color: #000; }
+        .btn-no { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+
+        /* الزر الجانبي الكبير */
+        .ui-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; pointer-events: none; display: none; align-items: center; justify-content: flex-start;
+        }
+        .controls-layer { margin-left: 30px; pointer-events: auto; }
+        .stop-view-btn {
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.3); color: white; padding: 25px 45px;
+            border-radius: 25px; font-size: 22px; font-weight: 900; display: flex; align-items: center; gap: 20px;
+        }
+
+        /* شريط التقدم */
+        #progress-bar { position: fixed; top: 0; left: 0; height: 5px; background: #fff; width: 0%; z-index: 1000; }
+
+        .visualizer { display: flex; align-items: flex-end; gap: 5px; height: 30px; }
+        .bar { width: 5px; background: #fff; border-radius: 3px; height: 8px; }
+        .playing .bar { animation: fluctuate 0.8s infinite alternate; }
+        @keyframes fluctuate { 0% { height: 8px; } 100% { height: 30px; } }
+    </style>
+</head>
+<body>
+
+    <div id="progress-bar"></div>
+
+    <div id="main-wrapper">
+        <video id="bgVideo" loop playsinline>
+            <source src="https://od.lk/download/M18zMjcyMjM3MjJf/38e433e9f3ae2127d60b1e68d2bdb916_720w.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div id="confirm-overlay">
+        <div class="confirm-box">
+            <h2>DO YOU WANT TO PLAY THE SONG?</h2>
+            <div class="btn-group">
+                <button class="confirm-btn btn-yes" onclick="startExperience(true)">YES, START</button>
+                <button class="confirm-btn btn-no" onclick="startExperience(false)">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-container" id="sideUI">
+        <div class="controls-layer">
+            <button id="ctrlBtn" class="stop-view-btn">
+                <div class="visualizer"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+                <span id="btnLabel">STOP VIEW</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('bgVideo');
+        const overlay = document.getElementById('confirm-overlay');
+        const sideUI = document.getElementById('sideUI');
+        const btn = document.getElementById('ctrlBtn');
+        const label = document.getElementById('btnLabel');
+        const progress = document.getElementById('progress-bar');
+
+        function startExperience(isYes) {
+            overlay.style.opacity = '0';
+            setTimeout(() => { 
+                overlay.style.display = 'none'; 
+                sideUI.style.display = 'flex';
+            }, 400);
+            
+            if (isYes) {
+                video.style.opacity = '1';
+                video.play();
+                btn.classList.add('playing');
+            } else {
+                video.style.opacity = '1';
+                label.innerText = "PLAY VIEW";
+                btn.classList.remove('playing');
+            }
+        }
+
+        video.ontimeupdate = () => {
+            const p = (video.currentTime / video.duration) * 100;
+            progress.style.width = p + '%';
+        };
+
+        btn.onclick = () => {
+            if (video.paused) { video.play(); label.innerText="STOP VIEW"; btn.classList.add('playing'); }
+            else { video.pause(); label.innerText="PLAY VIEW"; btn.classList.remove('playing'); }
+        };
+    </script>
+</body>
+</html>
