@@ -1,4 +1,4 @@
-module github.com/abu-sadim/tinytune-webhook
+module github.com/sedo2000/TinyTuneBot
 
 go 1.21
 
