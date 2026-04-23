@@ -10,49 +10,49 @@ import (
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// 1. جلب التوكن من إعدادات البيئة (أمان أكثر)
+	// جلب التوكن من Environment Variables في فيرسل
 	token := os.Getenv("TELEGRAM_BOT_TOKEN")
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		http.Error(w, "Bot initialization error", http.StatusInternalServerError)
+		// إذا كان هناك خطأ في التوكن سيظهر هنا في الـ Logs
+		fmt.Fprintf(w, "Bot Error: %v", err)
 		return
 	}
 
-	// 2. فك تشفير البيانات القادمة من تلجرام
 	var update tgbotapi.Update
+	// استقبال البيانات من تلجرام
 	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
-		http.Error(w, "Failed to decode update", http.StatusBadRequest)
+		// عند فتح الرابط من المتصفح يدوياً سيصل هنا لأنه لا توجد بيانات JSON
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "OK - TinyTune Bot is Listening! 🚀")
 		return
 	}
 
-	// 3. معالجة الرسائل
-	if update.Message != nil {
-		chatID := update.Message.Chat.ID
-		text := update.Message.Text
+	if update.Message != nil && update.Message.Text == "/start" {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Welcome to TinyTune! 🚀\nYour personal visualizer is ready.")
+		
+		// بناء رابط الـ WebApp ديناميكياً
+		webAppURL := "https://" + r.Host + "/"
 
-		var msg tgbotapi.MessageConfig
-
-		if text == "/start" {
-			// إعداد زر الـ Mini App
-			webApp := &tgbotapi.WebAppInfo{
-				URL: "https://your-tinytune-frontend.vercel.app", // رابط موقعك
-			}
-			button := tgbotapi.InlineKeyboardButton{
-				Text:   "🎵 Open TinyTune",
-				WebApp: webApp,
-			}
-			keyboard := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{button})
-
-			msg = tgbotapi.NewMessage(chatID, "Welcome to TinyTune! 🚀\nYour personal visualizer is ready.")
-			msg.ReplyMarkup = keyboard
-		} else {
-			msg = tgbotapi.NewMessage(chatID, "I only respond to /start for now!")
+		// استخدام Raw JSON لتجنب مشاكل إصدار المكتبة في فيرسل
+		button := map[string]interface{}{
+			"text": "🎵 Open TinyTune Visualizer",
+			"web_app": map[string]string{
+				"url": webAppURL,
+			},
 		}
+
+		keyboard := map[string]interface{}{
+			"inline_keyboard": [][]interface{}{
+				{button},
+			},
+		}
+
+		keyboardBytes, _ := json.Marshal(keyboard)
+		msg.ReplyMarkup = json.RawMessage(keyboardBytes)
 
 		bot.Send(msg)
 	}
 
-	// 4. الرد على تلجرام بنجاح (200 OK) لكي لا يعيد إرسال الرسالة
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "OK")
 }
