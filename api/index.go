@@ -10,19 +10,15 @@ import (
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// جلب التوكن من Environment Variables في فيرسل
 	token := os.Getenv("TELEGRAM_BOT_TOKEN")
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		// إذا كان هناك خطأ في التوكن سيظهر هنا في الـ Logs
 		fmt.Fprintf(w, "Bot Error: %v", err)
 		return
 	}
 
 	var update tgbotapi.Update
-	// استقبال البيانات من تلجرام
 	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
-		// عند فتح الرابط من المتصفح يدوياً سيصل هنا لأنه لا توجد بيانات JSON
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "OK - TinyTune Bot is Listening! 🚀")
 		return
@@ -31,15 +27,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	if update.Message != nil && update.Message.Text == "/start" {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Welcome to TinyTune! 🚀\nYour personal visualizer is ready.")
 		
-		// بناء رابط الـ WebApp ديناميكياً
-		webAppURL := "https://" + r.Host + "/"
+		// الرابط المباشر الذي طلبته
+		directLink := "http://t.me/TinyTuneBot/visuals"
 
-		// استخدام Raw JSON لتجنب مشاكل إصدار المكتبة في فيرسل
+		// تعديل الزر ليكون رابط (URL) بدلاً من WebApp
+		// تلجرام سيتعرف عليه تلقائياً ويفتحه كـ Mini App
 		button := map[string]interface{}{
 			"text": "🎵 Open TinyTune Visualizer",
-			"web_app": map[string]string{
-				"url": webAppURL,
-			},
+			"url":  directLink,
 		}
 
 		keyboard := map[string]interface{}{
